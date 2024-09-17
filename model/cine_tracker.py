@@ -63,3 +63,10 @@ class TraktAPI:
         else:
             print(f"Error al obtener las películas vistas: {response.status_code}")
             return []
+
+
+class User:
+    def __init__(self, name, trakt_api):
+        self.name = name
+        self.trakt_api = trakt_api
+        self.listas = {}
