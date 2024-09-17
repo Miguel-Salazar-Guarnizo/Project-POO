@@ -2,70 +2,46 @@ import requests
 import time
 from dotenv import load_dotenv
 import os
+import webbrowser
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
+REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'
+AUTH_URL = 'https://trakt.tv/oauth/authorize'
+TOKEN_URL = 'https://api.trakt.tv/oauth/token'
+LIST_URL = 'https://api.trakt.tv/users/{username}/lists/{listname}/items'
 API_URL = 'https://api.trakt.tv'
 
-# Generar códigos de dispositivo
-url = f"{API_URL}/oauth/device/code"
-payload = {
-    "client_id": CLIENT_ID
+# Paso 1: Redirigir al usuario para que autorice y obtener el código de autorización
+
+# Abrir la URL de autorización en el navegador
+authorization_url = f'{AUTH_URL}?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}'
+webbrowser.open(authorization_url)
+
+# Pedir al usuario que ingrese el código de autorización
+auth_code = input('Introduce el código de autorización que obtuviste de Trakt: ')
+
+# Paso 2: Intercambiar el código de autorización por un access_token
+data = {
+    'code': auth_code,
+    'client_id': CLIENT_ID,
+    'client_secret': CLIENT_SECRET,
+    'redirect_uri': REDIRECT_URI,
+    'grant_type': 'authorization_code',
 }
 
-response = requests.post(url, data=payload)
-data = response.json()
+response = requests.post(TOKEN_URL, json=data)
+token_data = response.json()
+access_token = token_data['access_token']
 
-# Extraer los códigos
-user_code = data['user_code']
-device_code = data['device_code']
-verification_url = data['verification_url']
-expires_in = data['expires_in']
-interval = data['interval']
-
-print(f"Por favor, ve a {verification_url} e ingresa el código: {user_code}")
-
-# Definir URL de token de dispositivo
-url_token = f"{API_URL}/oauth/device/token"
-payload_token = {
-    "client_id": CLIENT_ID,
-    "client_secret": CLIENT_SECRET,
-    "code": device_code
-}
-
-# Verificar la autorización
-start_time = time.time()
-access_token = None  # Para almacenar el access_token después de la autenticación exitosa
-
-while time.time() - start_time < expires_in:
-    response_token = requests.post(url_token, data=payload_token)
-
-    # Verifica el código de estado antes de intentar convertir a JSON
-    if response_token.status_code == 200:
-        try:
-            token_data = response_token.json()  # Intenta convertir a JSON
-            access_token = token_data['access_token']
-            refresh_token = token_data['refresh_token']
-            print("¡Autenticación exitosa!")
-            print(f"Access Token: {access_token}")
-            break
-        except requests.exceptions.JSONDecodeError:
-            print("Error al decodificar la respuesta JSON.")
-    else:
-        print(f"Error: {response_token.status_code} - {response_token.text}")
-
-    if response_token.status_code == 400:
-        print("Código no autorizado aún. Intentando de nuevo...")
-    elif response_token.status_code == 404:
-        print("Código no encontrado o expirado.")
-        break
-    else:
-        print(f"Error: {response_token.status_code}")
-
-    time.sleep(interval)
-
+if response.status_code == 200:
+    print(f"Access Token: {token_data['access_token']}")
+    print(f"Refresh Token: {token_data['refresh_token']}")
+else:
+    print(f"Error al obtener el token: {response.status_code}")
+    print(f"Respuesta: {token_data}")
 # Si existe acces_token, se hace la solicitud para obtener las películas vistas
 if access_token:
     headers = {
