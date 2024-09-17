@@ -79,3 +79,12 @@ class Movie:
 
     def __str__(self):
         return f"{self.title} ({self.year})"
+
+
+class List:
+    def __init__(self, name):
+        self.name = name
+        self.movies = []
+
+    def add_movies(self, movie: Movie):
+        self.movies.append(movie)
