@@ -81,8 +81,15 @@ class User:
             list_watched = List("Películas vistas")
             for item in watched_movies:
                 movie = Movie(item['movie']['title'], item['movie']['year'])
-                list_watched.add_movies(movie)
+                list_watched.add_movie(movie)
             self.add_list("Películas vistas", list_watched)
+
+    def show_lists(self):
+        """Muestra todas las listas del usuario."""
+        for list_name, list in self.lists.items():
+            print(f"\nLista: {list_name}")
+            list.show_movies()
+
 
 class Movie:
     def __init__(self, title, year):
@@ -107,3 +114,17 @@ class List:
             print("No hay películas en la lista.")
         for movie in self.movies:
             print(movie)
+
+
+if __name__ == '__main__':
+    trakt_api = TraktAPI()
+
+    # Autenticar al usuario y obtener el access token
+    if trakt_api.authenticate():
+        user = User("Emanuel", trakt_api)
+
+        # Obtener las películas vistas por el usuario
+        user.get_movies_viewed()
+
+        # Mostrar las listas del usuario (en este caso, la lista de películas vistas)
+        user.show_lists()
