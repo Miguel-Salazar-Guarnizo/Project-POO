@@ -16,6 +16,26 @@ class TraktAPI:
         self.API_URL = 'https://api.trakt.tv'
         self.access_token = None
 
+    def get_profile(self):
+        """Obtiene la información del perfil del usuario autenticado."""
+        if not self.access_token:
+            print("No tienes un access token. Autentica primero.")
+            return None
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "trakt-api-version": "2",
+            "trakt-api-key": self.CLIENT_ID
+        }
+
+        url = f"{self.API_URL}/users/me"
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            return response.json()  # Retorna el perfil del usuario
+        else:
+            print(f"Error al obtener el perfil: {response.status_code}")
+            return None
+
     def authenticate(self):
         """Redirige al usuario a la URL de autorización y solicita el código de autorización."""
         authorization_url = f'{self.AUTH_URL}?response_type=code&client_id={self.CLIENT_ID}&redirect_uri={self.REDIRECT_URI}'
