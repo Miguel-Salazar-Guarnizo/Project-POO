@@ -69,8 +69,20 @@ class User:
     def __init__(self, name, trakt_api):
         self.name = name
         self.trakt_api = trakt_api
-        self.listas = {}
+        self.lists = {}
 
+    def add_list(self, name_list, list):
+        self.lists[name_list] = list
+
+    def get_movies_viewed(self):
+        """Obtiene y almacena las películas vistas del usuario en una lista."""
+        watched_movies = self.trakt_api.get_watched_movies()
+        if watched_movies:
+            list_watched = List("Películas vistas")
+            for item in watched_movies:
+                movie = Movie(item['movie']['title'], item['movie']['year'])
+                list_watched.add_movies(movie)
+            self.add_list("Películas vistas", list_watched)
 
 class Movie:
     def __init__(self, title, year):
