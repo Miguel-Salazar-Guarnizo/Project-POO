@@ -8,7 +8,7 @@ import webbrowser
 load_dotenv()
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'
+REDIRECT_URI = os.getenv('REDIRECT_URI')
 AUTH_URL = 'https://trakt.tv/oauth/authorize'
 TOKEN_URL = 'https://api.trakt.tv/oauth/token'
 LIST_URL = 'https://api.trakt.tv/users/{username}/lists/{listname}/items'
