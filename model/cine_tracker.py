@@ -134,17 +134,3 @@ class List:
             print("No hay películas en la lista.")
         for movie in self.movies:
             print(movie)
-
-
-if __name__ == '__main__':
-    trakt_api = TraktAPI()
-
-    # Autenticar al usuario y obtener el access token
-    if trakt_api.authenticate():
-        user = User("Emanuel", trakt_api)
-
-        # Obtener las películas vistas por el usuario
-        user.get_movies_viewed()
-
-        # Mostrar las listas del usuario (en este caso, la lista de películas vistas)
-        user.show_lists()
