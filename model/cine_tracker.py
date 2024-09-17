@@ -98,5 +98,12 @@ class List:
         self.name = name
         self.movies = []
 
-    def add_movies(self, movie: Movie):
+    def add_movie(self, movie: Movie):
         self.movies.append(movie)
+
+    def show_movies(self):
+        """Muestra las películas almacenadas en la lista."""
+        if not self.movies:
+            print("No hay películas en la lista.")
+        for movie in self.movies:
+            print(movie)
