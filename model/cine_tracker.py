@@ -42,3 +42,24 @@ class TraktAPI:
             print(f"Error al obtener el token: {response.status_code}")
             print(f"Respuesta: {response.text}")
             return False
+
+    def get_watched_movies(self):
+        """Obtiene las películas vistas por el usuario autenticado."""
+        if not self.access_token:
+            print("No tienes un access token. Autentica primero.")
+            return []
+
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "trakt-api-version": "2",
+            "trakt-api-key": self.CLIENT_ID
+        }
+
+        url = f"{self.API_URL}/sync/watched/movies"
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"Error al obtener las películas vistas: {response.status_code}")
+            return []
