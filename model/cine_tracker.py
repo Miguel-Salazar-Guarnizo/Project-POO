@@ -92,6 +92,22 @@ class TraktAPI:
             print(f"Error al obtener las películas vistas: {response.status_code}")
             return []
 
+    def get_watch_list(self) -> list[dict[str, str]]:
+        """Obtiene la lista de seguimiento del usuario."""
+        if not self.access_token:
+            print("No tienes un access token. Autentica primero.")
+            return []
+
+        headers = self.get_headers()
+        url = f"{self.API_URL}/sync/watchlist/movies"
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            return response.json()  # Lista de diccionarios con las películas en la lista de seguimiento
+        else:
+            print(f"Error al obtener la lista de seguimiento: {response.status_code}")
+            return []
+
 
 class User:
     def __init__(self, name: str, trakt_api: TraktAPI):
@@ -111,6 +127,16 @@ class User:
                 movie = Movie(item['movie']['title'], item['movie']['year'])
                 list_watched.add_movie(movie)
             self.add_list("Películas vistas", list_watched)
+
+    def get_watch_list(self):
+        """Obtiene la lista de seguimiento de películas."""
+        watch_list = self.trakt_api.get_watch_list()
+        if watch_list:
+            watchlist = MovieList("Lista de seguimiento")  # Usa List en lugar de MovieList
+            for item in watch_list:  # Itera sobre `watch_list` y no sobre `watchlist`
+                movie = Movie(item['movie']['title'], item['movie']['year'])
+                watchlist.add_movie(movie)
+            self.add_list("Lista de seguimiento", watchlist)
 
     def show_lists(self):
         """Muestra todas las listas del usuario."""

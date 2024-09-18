@@ -16,6 +16,7 @@ class UIConsole:
         self.options = {
             '1': self.authenticate_user,
             '2': self.show_watched_movies,
+            '3': self.show_watch_list,
             '0': self.exit
         }
 
@@ -28,6 +29,7 @@ class UIConsole:
             print('Trakt App Menu (No autenticado)')  # Si no está autenticado, indicar "No autenticado"
         print('1. Autenticar usuario')
         print('2. Ver películas vistas')
+        print('3. Ver lista de seguimiento')
         print('0. Salir')
         print("====================================")
 
@@ -69,6 +71,16 @@ class UIConsole:
         print(">>> Películas vistas ========================")
         self.user.get_movies_viewed()  # Llamamos al método para obtener las películas vistas
         self.user.show_lists()  # Mostramos las listas del usuario
+
+    def show_watch_list(self):
+        if not self.user:  # Si el usuario no está autenticado
+            print("Primero debes autenticar al usuario")
+            return
+
+        print(">>> Lista de seguimiento ========================")
+        self.user.get_watch_list()  # Llamamos al método para obtener las películas vistas
+        self.user.show_lists()  # Mostramos las listas del usuario
+
 
     def exit(self):
         """Cierra la aplicación."""
