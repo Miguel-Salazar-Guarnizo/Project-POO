@@ -108,6 +108,22 @@ class TraktAPI:
             print(f"Error al obtener la lista de seguimiento: {response.status_code}")
             return []
 
+    def get_trend_movies(self) -> list[dict[str, str]]:
+        """Obtiene las películas en tendencia desde la API de Trakt."""
+        if not self.access_token:
+            print("No tienes un access token. Autentica primero.")
+            return []
+
+        headers = self.get_headers()
+        url = f"{self.API_URL}/movies/trending"
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            return response.json()  # Lista de diccionarios con las películas en tendencia
+        else:
+            print(f"Error al obtener las películas en tendencia: {response.status_code}")
+            return []
+
 
 class User:
     def __init__(self, name: str, trakt_api: TraktAPI):
@@ -138,11 +154,33 @@ class User:
                 watchlist.add_movie(movie)
             self.add_list("Lista de seguimiento", watchlist)
 
-    def show_lists(self):
-        """Muestra todas las listas del usuario."""
-        for list_name, list in self.lists.items():
-            print(f"\nLista: {list_name}")
-            list.show_movies()
+    def get_trend_movies(self):
+        """Obtiene las películas en tendencia desde la API de Trakt."""
+        trend_movies = self.trakt_api.get_trend_movies()
+        if trend_movies:
+            trend_list = MovieList("Películas en tendencia")
+            for item in trend_movies:
+                movie = Movie(item['movie']['title'], item['movie']['year'])
+                trend_list.add_movie(movie)
+            self.add_list("Películas en tendencia", trend_list)
+
+    def show_list(self, list_name: str):
+        """Muestra una lista específica del usuario."""
+        movie_list = self.lists.get(list_name)
+        if movie_list:
+            movie_list.show_movies()
+        else:
+            print(f"No se encontró la lista: {list_name}")
+
+    def show_lists(self, list_name: str = None):
+        """Muestra una lista si se proporciona un nombre;
+        de lo contrario, muestra todas las listas del usuario."""
+        if list_name:
+            self.show_list(list_name)
+        else:
+            for name, movie_list in self.lists.items():
+                print(f"\nLista: {name}")
+                movie_list.show_movies()
 
 
 class Movie:

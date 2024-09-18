@@ -17,6 +17,7 @@ class UIConsole:
             '1': self.authenticate_user,
             '2': self.show_watched_movies,
             '3': self.show_watch_list,
+            '4': self.show_trend_movies,
             '0': self.exit
         }
 
@@ -30,6 +31,7 @@ class UIConsole:
         print('1. Autenticar usuario')
         print('2. Ver películas vistas')
         print('3. Ver lista de seguimiento')
+        print('4. Ver películas en tendencia')
         print('0. Salir')
         print("====================================")
 
@@ -70,16 +72,28 @@ class UIConsole:
 
         print(">>> Películas vistas ========================")
         self.user.get_movies_viewed()  # Llamamos al método para obtener las películas vistas
-        self.user.show_lists()  # Mostramos las listas del usuario
+        self.user.show_lists("Películas vistas")  # Mostramos las listas del usuario
+        input("===Enter para continuar===")
 
     def show_watch_list(self):
-        if not self.user:  # Si el usuario no está autenticado
+        if not self.user:
             print("Primero debes autenticar al usuario")
             return
 
         print(">>> Lista de seguimiento ========================")
-        self.user.get_watch_list()  # Llamamos al método para obtener las películas vistas
-        self.user.show_lists()  # Mostramos las listas del usuario
+        self.user.get_watch_list()
+        self.user.show_lists("Lista de seguimiento")
+        input("===Enter para continuar===")
+
+    def show_trend_movies(self):
+        if not self.user:
+            print("Primero debes autenticar al usuario")
+            return
+
+        print(">>> Lista de películas en tendencia ========================")
+        self.user.get_trend_movies()
+        self.user.show_lists("Películas en tendencia")
+        input("===Enter para continuar===")
 
 
     def exit(self):
