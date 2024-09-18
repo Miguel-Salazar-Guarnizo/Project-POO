@@ -1,12 +1,17 @@
+import os
 import sys
 
-from model.cine_tracker import TraktAPI, User, Movie, List
+from model.cine_tracker import TraktAPI, User, Movie, List, Auth
 
 
 class UIConsole:
 
     def __init__(self):
-        self.trakt_api = TraktAPI()
+        self.auth = Auth(CLIENT_ID=os.getenv('CLIENT_ID'),
+                         CLIENT_SECRET=os.getenv('CLIENT_SECRET'),
+                         REDIRECT_URI=os.getenv('REDIRECT_URI')
+                         )
+        self.trakt_api = None
         self.user = None
         self.options = {
             '1': self.authenticate_user,
@@ -39,7 +44,9 @@ class UIConsole:
     def authenticate_user(self):
         """Autentica al usuario y obtiene su perfil desde Trakt."""
         print(">>> Autenticando usuario ========================")
-        if self.trakt_api.authenticate():  # Intentamos autenticar al usuario
+        access_token = self.auth.authenticate()
+        if access_token:  # Intentamos autenticar al usuario
+            self.trakt_api = TraktAPI(self.auth.CLIENT_ID, access_token)
             profile = self.trakt_api.get_profile()  # Obtenemos el perfil del usuario
             if profile:
                 # Obtenemos el username del perfil o 'Usuario' si no está disponible

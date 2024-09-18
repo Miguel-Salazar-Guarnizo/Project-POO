@@ -1,3 +1,4 @@
+from typing import List
 import requests
 import webbrowser
 import os
@@ -6,44 +7,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class TraktAPI:
-    def __init__(self):
-        self.CLIENT_ID = os.getenv('CLIENT_ID')
-        self.CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-        self.REDIRECT_URI = os.getenv('REDIRECT_URI')
-        self.AUTH_URL = 'https://trakt.tv/oauth/authorize'
-        self.TOKEN_URL = 'https://api.trakt.tv/oauth/token'
-        self.API_URL = 'https://api.trakt.tv'
-        self.access_token = None
+class Auth:
+    def __init__(self, CLIENT_ID: str, CLIENT_SECRET: str, REDIRECT_URI: str):
+        self.CLIENT_ID: str = CLIENT_ID
+        self.CLIENT_SECRET: str = CLIENT_SECRET
+        self.REDIRECT_URI: str = REDIRECT_URI
+        self.AUTH_URL: str = 'https://trakt.tv/oauth/authorize'
+        self.TOKEN_URL: str = 'https://api.trakt.tv/oauth/token'
+        self.API_URL: str = 'https://api.trakt.tv'
+        self.access_token: str | None = None
 
-    def get_profile(self):
-        """Obtiene la información del perfil del usuario autenticado."""
-        if not self.access_token:
-            print("No tienes un access token. Autentica primero.")
-            return None
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-            "trakt-api-version": "2",
-            "trakt-api-key": self.CLIENT_ID
-        }
-
-        url = f"{self.API_URL}/users/me"
-        response = requests.get(url, headers=headers)
-
-        if response.status_code == 200:
-            return response.json()  # Retorna el perfil del usuario
-        else:
-            print(f"Error al obtener el perfil: {response.status_code}")
-            return None
-
-    def authenticate(self):
+    def authenticate(self) -> str:
         """Redirige al usuario a la URL de autorización y solicita el código de autorización."""
         authorization_url = f'{self.AUTH_URL}?response_type=code&client_id={self.CLIENT_ID}&redirect_uri={self.REDIRECT_URI}'
         webbrowser.open(authorization_url)
         auth_code = input('Introduce el código de autorización que obtuviste de Trakt: ')
         return self.get_access_token(auth_code)
 
-    def get_access_token(self, auth_code):
+    def get_access_token(self, auth_code: str) -> str | None:
         """Intercambia el código de autorización por un token de acceso."""
         data = {
             'code': auth_code,
@@ -57,23 +38,50 @@ class TraktAPI:
             token_data = response.json()
             self.access_token = token_data['access_token']
             print(f"Access Token: {self.access_token}")
-            return True
+            return self.access_token
         else:
             print(f"Error al obtener el token: {response.status_code}")
             print(f"Respuesta: {response.text}")
-            return False
+            return None
 
-    def get_watched_movies(self):
+
+class TraktAPI:
+    def __init__(self, CLIENT_ID: str, access_token: str = None):
+        self.CLIENT_ID: str = CLIENT_ID
+        self.API_URL: str = 'https://api.trakt.tv'
+        self.access_token: str | None = access_token
+
+    def get_headers(self) -> dict[str, str]:
+        """Genera los headers"""
+        return {
+            "Authorization": f"Bearer {self.access_token}",
+            "trakt-api-version": "2",
+            "trakt-api-key": self.CLIENT_ID
+        }
+
+    def get_profile(self) -> dict[str, str] | None:
+        """Obtiene la información del perfil del usuario autenticado."""
+        if not self.access_token:
+            print("No tienes un access token. Autentica primero.")
+            return None
+        headers = self.get_headers()
+
+        url = f"{self.API_URL}/users/me"
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            return response.json()  # Retorna el perfil del usuario
+        else:
+            print(f"Error al obtener el perfil: {response.status_code}")
+            return None
+
+    def get_watched_movies(self) -> dict[str, str] | list:
         """Obtiene las películas vistas por el usuario autenticado."""
         if not self.access_token:
             print("No tienes un access token. Autentica primero.")
             return []
 
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-            "trakt-api-version": "2",
-            "trakt-api-key": self.CLIENT_ID
-        }
+        headers = self.get_headers()
 
         url = f"{self.API_URL}/sync/watched/movies"
         response = requests.get(url, headers=headers)
@@ -86,19 +94,19 @@ class TraktAPI:
 
 
 class User:
-    def __init__(self, name, trakt_api):
-        self.name = name
-        self.trakt_api = trakt_api
-        self.lists = {}
+    def __init__(self, name: str, trakt_api: TraktAPI):
+        self.name: str = name
+        self.trakt_api: TraktAPI = trakt_api
+        self.lists: dict[str, List] = {}
 
-    def add_list(self, name_list, list):
-        self.lists[name_list] = list
+    def add_list(self, name_list: str, list: List):
+        self.lists[name_list]: list[List] = list
 
     def get_movies_viewed(self):
         """Obtiene y almacena las películas vistas del usuario en una lista."""
         watched_movies = self.trakt_api.get_watched_movies()
         if watched_movies:
-            list_watched = List("Películas vistas")
+            list_watched = MovieList("Películas vistas")
             for item in watched_movies:
                 movie = Movie(item['movie']['title'], item['movie']['year'])
                 list_watched.add_movie(movie)
@@ -112,18 +120,18 @@ class User:
 
 
 class Movie:
-    def __init__(self, title, year):
-        self.title = title
-        self.year = year
+    def __init__(self, title: str, year: str):
+        self.title: str = title
+        self.year: str = year
 
     def __str__(self):
         return f"{self.title} ({self.year})"
 
 
-class List:
-    def __init__(self, name):
-        self.name = name
-        self.movies = []
+class MovieList:
+    def __init__(self, name: str):
+        self.name: str = name
+        self.movies: list[Movie] = []
 
     def add_movie(self, movie: Movie):
         self.movies.append(movie)
