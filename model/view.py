@@ -1,7 +1,7 @@
 import os
 import sys
 
-from model.cine_tracker import TraktAPI, User, Movie, List, Auth
+from model.code import TraktAPI, User, Movie, List, Auth
 
 
 class UIConsole:
